@@ -1,0 +1,8 @@
+name = "mpls-ledger"
+main = "src/worker.js"
+compatibility_date = "2024-02-21"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mpls_ledger_db"
+database_id = "a02fd5b8-aeff-4bd0-93ae-15beae3ee75c"

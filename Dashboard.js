@@ -1,0 +1,178 @@
+/**
+ * Main logic for the MPLS Ledger frontend rendering.
+ * Includes mimicking Astro/Tailwind data binding and injecting D3 voting blocs.
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
+    setupTabs();
+    renderAgendaFeed();
+    initializeD3VotingMatrix();
+});
+
+function setupTabs() {
+    const tabSummaries = document.getElementById("tab-summaries");
+    const tabTracker = document.getElementById("tab-tracker");
+    const trackerContainer = document.getElementById("vote-tracker-container");
+
+    tabSummaries.addEventListener("click", () => {
+        tabSummaries.className = "tab-active pb-1 transition-colors";
+        tabTracker.className = "tab-inactive pb-1 transition-colors";
+        // On mobile, maybe hide the tracker, but this is simple responsive mapping
+        trackerContainer.classList.add("hidden", "lg:block");
+    });
+
+    tabTracker.addEventListener("click", () => {
+        tabTracker.className = "tab-active pb-1 transition-colors";
+        tabSummaries.className = "tab-inactive pb-1 transition-colors";
+        trackerContainer.classList.remove("hidden", "lg:block"); // Force show
+        trackerContainer.classList.add("block", "w-full", "lg:col-span-3");
+    });
+}
+
+function renderAgendaFeed() {
+    const feed = document.getElementById('agenda-feed');
+
+    // Mock Data representing D1 REST API responses
+    const agendaData = [
+        {
+            title: "Resolution 2026-08A: Metro Transit Expansion",
+            ai_summary: "Approves a $4.5 million budget reallocation to extend BRT infrastructure in Wards 3 and 5. Focuses heavily on improved lighting and 24-hour security operations.",
+            category: "Transit",
+            status: "Passed 8-5",
+            date: "Feb 20, 2026"
+        },
+        {
+            title: "Ordinance 14.2: Mixed-Use Zoning Mandate",
+            ai_summary: "Mandates that all new commercial developments over 50,000 sq ft in the Uptown corridor include a minimum of 15% affordable residential housing units.",
+            category: "Housing",
+            status: "In Committee",
+            date: "Feb 18, 2026"
+        },
+        {
+            title: "Public Safety Tech Upgrade Request",
+            ai_summary: "Funds the modernization of emergency dispatch systems to improve 911 response times and provide direct integration with street-level civic camera feeds.",
+            category: "Public Safety",
+            status: "Passed Unanimously",
+            date: "Feb 15, 2026"
+        }
+    ];
+
+    feed.innerHTML = ""; // Clear loader
+
+    agendaData.forEach(item => {
+        const card = document.createElement('article');
+        card.className = "bg-white p-7 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300";
+
+        // Define color tag loosely based on category
+        const tagColors = {
+            "Transit": "bg-blue-50 text-blue-700",
+            "Housing": "bg-purple-50 text-purple-700",
+            "Public Safety": "bg-red-50 text-red-700"
+        };
+        const colorClass = tagColors[item.category] || "bg-gray-100 text-gray-700";
+
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${colorClass}">${item.category}</span>
+                <span class="text-sm font-semibold text-gray-500 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    ${item.date}
+                </span>
+            </div>
+            <h3 class="text-2xl font-bold mb-3 leading-snug text-gray-900">${item.title}</h3>
+            <div class="bg-gray-50 p-4 rounded-xl mb-4 border border-gray-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+                    <span class="text-sm font-bold text-indigo-900">Gemini 3 Pro Summary</span>
+                </div>
+                <p class="text-gray-700 leading-relaxed text-[15px]">${item.ai_summary}</p>
+            </div>
+            <div class="flex justify-between items-center text-sm font-medium">
+                <span class="text-gray-500">Status: <span class="text-gray-900 font-bold ml-1">${item.status}</span></span>
+                <button class="text-blue-600 hover:text-blue-800 transition-colors font-bold">Read Full Text &rarr;</button>
+            </div>
+        `;
+        feed.appendChild(card);
+    });
+}
+
+function initializeD3VotingMatrix() {
+    const containerNode = document.getElementById("d3-placeholder");
+    const containerSelect = d3.select("#d3-placeholder");
+
+    containerSelect.select("span").remove(); // Clear loader
+
+    // 1. DATA SCIENCE MAPPING
+    // In production, this will come from your 'data_science_logic.py' via an API call.
+    const members = ["Payne", "Wonsley", "Osman", "Chughtai", "Chavez", "Palmisano", "Rainville", "Vetaw"];
+
+    // Mock Correlation Data: 1 is perfect alignment, -1 is total opposition
+    const correlationData = [];
+    members.forEach(a => {
+        members.forEach(b => {
+            let correlation = (a === b) ? 1 : (Math.random() * 2 - 1); // Mock random correlation
+            correlationData.push({ memberA: a, memberB: b, value: correlation });
+        });
+    });
+
+    // 2. DIMENSIONS
+    const margin = { top: 40, right: 20, bottom: 60, left: 70 };
+    const width = containerNode.getBoundingClientRect().width - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+
+    const svg = containerSelect.append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // 3. SCALES
+    const x = d3.scaleBand().range([0, width]).domain(members).padding(0.05);
+    const y = d3.scaleBand().range([height, 0]).domain(members).padding(0.05);
+
+    // Divergent Color Scale: Blue (Align), White (Neutral), Red (Oppose)
+    const colorScale = d3.scaleLinear()
+        .domain([-1, 0, 1])
+        .range(["#ef4444", "#f8fafc", "#3b82f6"]);
+
+    // 4. DRAW HEATMAP CELLS
+    svg.selectAll()
+        .data(correlationData)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.memberA))
+        .attr("y", d => y(d.memberB))
+        .attr("width", x.bandwidth())
+        .attr("height", y.bandwidth())
+        .style("fill", d => colorScale(d.value))
+        .attr("rx", 4) // Rounded corners for Zulu's clean aesthetic
+        .attr("class", "cursor-pointer transition-opacity hover:opacity-80")
+        .on("mouseover", function (event, d) {
+            // Simple logic for a tooltip could go here
+            d3.select(this).style("stroke", "#1e293b").style("stroke-width", "2");
+        })
+        .on("mouseleave", function () {
+            d3.select(this).style("stroke", "none");
+        });
+
+    // 5. AXES & LABELS
+    svg.append("g")
+        .style("font-size", "10px")
+        .style("font-weight", "600")
+        .call(d3.axisLeft(y).tickSize(0))
+        .select(".domain").remove();
+
+    svg.append("g")
+        .style("font-size", "10px")
+        .style("font-weight", "600")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x).tickSize(0))
+        .select(".domain").remove();
+
+    // Rotate X-axis labels for readability
+    svg.selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em");
+}
