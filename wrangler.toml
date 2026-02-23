@@ -1,4 +1,4 @@
-name = "mpls-ledger"
+name = "turbo-waffle"
 main = "worker.js"
 compatibility_date = "2024-02-21"
 
