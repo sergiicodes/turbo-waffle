@@ -60,7 +60,7 @@ async function renderAgendaFeed() {
     const feed = document.getElementById('agenda-feed');
 
     // Mock Data representing D1 REST API responses
-    const res = await fetch("/api/agenda");
+    const res = await fetch("https://turbo-waffle.sergiojhernandezacosta.workers.dev/api/agenda");
     const agendaData = await res.json();
 
     feed.innerHTML = ""; // Clear loader
