@@ -19,7 +19,7 @@ export default {
         if (url.pathname === "/api/agenda") {
 
             const { results } = await env.DB.prepare(
-                "SELECT * FROM agenda"
+                "SELECT * FROM agenda_items"
             ).all();
 
             return new Response(JSON.stringify(results), {

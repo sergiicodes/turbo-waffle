@@ -39,20 +39,31 @@ async function fetchNewsTicker() {
 function setupTabs() {
     const tabSummaries = document.getElementById("tab-summaries");
     const tabTracker = document.getElementById("tab-tracker");
-    const trackerContainer = document.getElementById("right-sidebar");
+    const rightSidebar = document.getElementById("right-sidebar");
+    const agendaFeed = document.getElementById("agenda-feed");
 
     tabSummaries.addEventListener("click", () => {
         tabSummaries.className = "tab-active pb-1 transition-colors";
         tabTracker.className = "tab-inactive pb-1 transition-colors";
-        // On mobile, maybe hide the tracker, but this is simple responsive mapping
-        trackerContainer.classList.add("hidden", "lg:block");
+
+        // Mobile view logic
+        if (window.innerWidth < 1024) {
+            agendaFeed.classList.remove("hidden");
+            rightSidebar.classList.add("hidden");
+            rightSidebar.classList.remove("flex", "flex-col");
+        }
     });
 
     tabTracker.addEventListener("click", () => {
         tabTracker.className = "tab-active pb-1 transition-colors";
         tabSummaries.className = "tab-inactive pb-1 transition-colors";
-        trackerContainer.classList.remove("hidden", "lg:block"); // Force show
-        trackerContainer.classList.add("block", "w-full", "lg:col-span-3");
+
+        // Mobile view logic
+        if (window.innerWidth < 1024) {
+            agendaFeed.classList.add("hidden");
+            rightSidebar.classList.remove("hidden");
+            rightSidebar.classList.add("flex", "flex-col");
+        }
     });
 }
 
