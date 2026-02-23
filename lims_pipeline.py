@@ -8,7 +8,10 @@ from datetime import datetime, timedelta
 # Note: This script is configured to run via GitHub Actions.
 # The Gemini API key should be provided via repository secrets.
 if "GEMINI_API_KEY" in os.environ:
-    genai.configure(api_key=os.environ["AIzaSyAUkCBSnd9J8I3whGCwK5yA5oxOYuNcUo0"])
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+else:
+    # Try the key directly for local testing, fallback
+    genai.configure(api_key="AIzaSyAUkCBSnd9J8I3whGCwK5yA5oxOYuNcUo0")
 
 LIMS_API_URL = "https://lims.minneapolismn.gov/api/index.html" # Placeholder API route
 

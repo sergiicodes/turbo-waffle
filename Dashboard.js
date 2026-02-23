@@ -7,12 +7,39 @@ document.addEventListener("DOMContentLoaded", () => {
     setupTabs();
     renderAgendaFeed();
     initializeD3VotingMatrix();
+    fetchNewsTicker();
 });
+
+async function fetchNewsTicker() {
+    const tickerContainer = document.getElementById("news-ticker-content");
+    if (!tickerContainer) return;
+
+    try {
+        const res = await fetch("news.json");
+        if (!res.ok) throw new Error("Network response was not ok");
+        const headlines = await res.json();
+
+        let html = "";
+        headlines.forEach(news => {
+            html += `
+                <span class="mx-3 text-blue-300">•</span>
+                <a href="${news.url}" target="_blank" rel="noopener noreferrer" class="hover:text-amber-300 transition-colors uppercase cursor-pointer hover:underline text-[13px] tracking-wide">${news.title}</a>
+            `;
+        });
+        tickerContainer.innerHTML = html;
+    } catch (error) {
+        console.error("Failed to load news:", error);
+        tickerContainer.innerHTML = `
+            <span class="mx-3 text-blue-300">•</span>
+            <span class="text-white text-[13px] uppercase tracking-wide">Unable to load Twin Cities live news. Check pipeline.</span>
+        `;
+    }
+}
 
 function setupTabs() {
     const tabSummaries = document.getElementById("tab-summaries");
     const tabTracker = document.getElementById("tab-tracker");
-    const trackerContainer = document.getElementById("vote-tracker-container");
+    const trackerContainer = document.getElementById("right-sidebar");
 
     tabSummaries.addEventListener("click", () => {
         tabSummaries.className = "tab-active pb-1 transition-colors";
@@ -29,33 +56,12 @@ function setupTabs() {
     });
 }
 
-function renderAgendaFeed() {
+async function renderAgendaFeed() {
     const feed = document.getElementById('agenda-feed');
 
     // Mock Data representing D1 REST API responses
-    const agendaData = [
-        {
-            title: "Resolution 2026-08A: Metro Transit Expansion",
-            ai_summary: "Approves a $4.5 million budget reallocation to extend BRT infrastructure in Wards 3 and 5. Focuses heavily on improved lighting and 24-hour security operations.",
-            category: "Transit",
-            status: "Passed 8-5",
-            date: "Feb 20, 2026"
-        },
-        {
-            title: "Ordinance 14.2: Mixed-Use Zoning Mandate",
-            ai_summary: "Mandates that all new commercial developments over 50,000 sq ft in the Uptown corridor include a minimum of 15% affordable residential housing units.",
-            category: "Housing",
-            status: "In Committee",
-            date: "Feb 18, 2026"
-        },
-        {
-            title: "Public Safety Tech Upgrade Request",
-            ai_summary: "Funds the modernization of emergency dispatch systems to improve 911 response times and provide direct integration with street-level civic camera feeds.",
-            category: "Public Safety",
-            status: "Passed Unanimously",
-            date: "Feb 15, 2026"
-        }
-    ];
+    const res = await fetch("/api/agenda");
+    const agendaData = await res.json();
 
     feed.innerHTML = ""; // Clear loader
 
