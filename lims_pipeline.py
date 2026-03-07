@@ -11,7 +11,7 @@ if "GEMINI_API_KEY" in os.environ:
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 else:
     # Try the key directly for local testing, fallback
-    genai.configure(api_key="AIzaSyAUkCBSnd9J8I3whGCwK5yA5oxOYuNcUo0")
+    genai.configure(api_key="x")
 
 LIMS_API_URL = "https://lims.minneapolismn.gov/api/index.html" # Placeholder API route
 
